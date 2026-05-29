@@ -17,43 +17,39 @@ app.use(cors({
 app.use(express.json());
 
 // ===============================
-// MYSQL DATABASE CONNECTION
+// MYSQL DATABASE CONNECTION (SERVERLESS POOL OPTIMIZED)
 // ===============================
-const db = mysql.createConnection({
+const pool = mysql.createPool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     ssl: {
-        rejectUnauthorized: false // This fixes the Aiven secure connection issue
-    }
+        rejectUnauthorized: false
+    },
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error('Database connection failed:', err);
-        return;
+// Use pool.query instead of db.query for serverless stability
+const db = pool; 
+
+// Auto-seed default admin account stably
+const checkAdminSql = "SELECT * FROM users WHERE email = 'admin@rentgo.com'";
+db.query(checkAdminSql, (err, results) => {
+    if (!err && results && results.length === 0) {
+        bcrypt.hash('admin123', 10, (hashErr, adminHash) => {
+            if (hashErr) return;
+            
+            const seedSql =
+                "INSERT INTO users (username, email, password) VALUES ('Admin', 'admin@rentgo.com', ?)";
+
+            db.query(seedSql, [adminHash]);
+            console.log("Master admin account provisioned.");
+        });
     }
-
-    console.log('Connected to MySQL Database.');
-
-    // Auto-seed default admin account
-    const checkAdminSql = "SELECT * FROM users WHERE email = 'admin@rentgo.com'";
-
-    db.query(checkAdminSql, (err, results) => {
-        if (!err && results && results.length === 0) {
-            bcrypt.hash('admin123', 10, (hashErr, adminHash) => {
-                if (hashErr) return;
-                
-                const seedSql =
-                    "INSERT INTO users (username, email, password) VALUES ('Admin', 'admin@rentgo.com', ?)";
-
-                db.query(seedSql, [adminHash]);
-                console.log("Master admin account provisioned.");
-            });
-        }
-    });
 });
 
 db.connect((err) => {
