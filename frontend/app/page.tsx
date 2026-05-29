@@ -44,8 +44,7 @@ export default function Home() {
   });
 
   // Rental Form State
-  const [rentalForm, setRentalForm] = useState<RentalFormData>({
-    fullName: "",
+  const [rentalForm, setRentalForm] = useState<RentalFormData>({fullName: "",
     phone: "",
     email: "",
     age: "",
@@ -102,17 +101,17 @@ export default function Home() {
     setView("login");
   };
 
-  const handleAuthSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleAuthSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     if (view === "forgot") {
       try {
-        const response = await fetch("http://localhost:5000/api/forgot-password", {
+        const response = await fetch("/api/forgot-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: formData.email }),
         });
-        const data = await response.json();
+        const data = await response.json() as { message?: string };
         if (response.ok) {
           alert("Verification code sent to your email!");
           setView("verify_code");
@@ -125,7 +124,7 @@ export default function Home() {
     }
     else if (view === "verify_code") {
       try {
-        const response = await fetch("http://localhost:5000/api/reset-password", {
+        const response = await fetch("/api/reset-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -134,7 +133,7 @@ export default function Home() {
             newPassword: formData.newPassword
           }),
         });
-        const data = await response.json();
+        const data = await response.json() as { message?: string };
         if (response.ok) {
           alert("Password updated successfully!");
           setView("login");
@@ -144,14 +143,14 @@ export default function Home() {
       } catch {
         alert("Server error updating password.");
       }
-    } 
+    }
     else if (view === "signup") {
       if (formData.password !== formData.confirmPassword) {
         alert("Passwords do not match!");
         return;
       }
       try {
-        const response = await fetch("http://localhost:5000/api/signup", {
+        const response = await fetch("/api/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -160,7 +159,7 @@ export default function Home() {
             password: formData.password
           }),
         });
-        const data = await response.json();
+        const data = await response.json() as { message?: string };
         if (response.ok) {
           alert("Account created successfully!");
           setFormData(prev => ({ ...prev, password: "", confirmPassword: "" }));
@@ -171,10 +170,10 @@ export default function Home() {
       } catch {
         alert("Cannot connect to backend server.");
       }
-    } 
+    }
     else if (view === "login") {
       try {
-        const response = await fetch("http://localhost:5000/api/login", {
+        const response = await fetch("/api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -182,7 +181,7 @@ export default function Home() {
             password: formData.password
           }),
         });
-        const data = await response.json();
+        const data = await response.json() as { message?: string };
 
         if (response.ok) {
           alert("Login successful!");
@@ -238,11 +237,10 @@ export default function Home() {
           <button onClick={() => setView("about")} className={`hover:text-red-400 transition-colors bg-transparent border-none cursor-pointer ${view === "about" ? "text-red-500" : "text-zinc-400"}`}>ABOUT</button>
           <button onClick={() => setView("services")} className={`hover:text-red-400 transition-colors bg-transparent border-none cursor-pointer ${view === "services" ? "text-red-500" : "text-zinc-400"}`}>SERVICES</button>
           <button onClick={() => setView("contact")} className={`hover:text-red-400 transition-colors bg-transparent border-none cursor-pointer ${view === "contact" ? "text-red-500" : "text-zinc-400"}`}>CONTACT</button>
-          
-          {/* LOG OUT BUTTON */}
+
           {!isAuthView && (
-            <button 
-              onClick={handleLogOut} 
+            <button
+              onClick={handleLogOut}
               className="text-zinc-400 hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer font-black"
             >
               LOG OUT
@@ -377,158 +375,167 @@ export default function Home() {
         )}
 
         {/* ABOUT PAGE VIEW */}
-        {view === "about" && (
-          <div className="w-full max-w-[1100px] flex flex-col items-center mt-2 text-left">
-            <h2 className="font-concert text-center text-3xl md:text-5xl font-black uppercase tracking-tight text-red-500 mb-12">WELCOME TO RENTGO</h2>
-            <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-              <div className="lg:col-span-4 space-y-6 text-sm md:text-base font-normal tracking-wide leading-relaxed text-zinc-300">
-                <p>At <span className="text-white font-bold">RENTGO</span>, we make transportation simple, convenient, and reliable. Whether you need a car for a family trip, a motorcycle for quick city travel, or a vehicle for your next adventure, RENTGO is here to help you get on the road with ease.</p>
-                <p>Our platform allows customers to rent cars and motorcycles anytime with a fast and hassle-free process. If your preferred vehicle is currently unavailable, you can reserve it in advance and secure your booking for your desired date and time.</p>
-                <p>We aim to provide affordable, safe, and well-maintained vehicles for every type of traveler. From daily transportation to vacations, business meetings, airport transfers, and special occasions, RENTGO offers flexible rental options that fit your needs.</p>
-              </div>
-              <div className="lg:col-span-4 flex justify-center items-center w-full min-h-[420px] lg:scale-125 xl:scale-135 transition-transform duration-300">
-                <img src="/images/Montero Sport.png" alt="About Vehicle Front" className="w-full h-auto max-h-[500px] lg:max-h-[600px] object-contain drop-shadow-[-30px_20px_40px_rgba(0,0,0,0.95)]" />
-              </div>
-              <div className="lg:col-span-4 space-y-8">
-                <div>
-                  <h3 className="font-concert text-red-400 font-bold text-lg uppercase tracking-wide mb-3">WHAT WE OFFER</h3>
-                  <ul className="list-disc pl-5 space-y-2 text-xs md:text-sm text-zinc-400 tracking-wide">
-                    <li>Wide selection of cars and motorcycles</li>
-                    <li>Easy online booking and reservation system</li>
-                    <li>Vehicle availability tracking</li>
-                    <li>Advance reservation for unavailable vehicles</li>
-                    <li>Affordable rental rates</li>
-                    <li>Safe and well-maintained units</li>
-                    <li>Customer support for booking assistance</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-concert text-red-400 font-bold text-lg uppercase tracking-wide mb-3">WHY CHOOSE RENTGO?</h3>
-                  <p className="text-xs md:text-sm tracking-wide leading-relaxed text-zinc-400">At RENTGO, customer satisfaction is our priority. We focus on providing a smooth rental experience by making booking easier, faster, and more accessible for everyone. Our goal is to help customers travel comfortably and confidently wherever they go.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+{view === "about" && (
+  <div className="w-full max-w-[1100px] flex flex-col items-center mt-2 text-left">
+    <h2 className="font-concert text-center text-3xl md:text-5xl font-black uppercase tracking-tight text-red-500 mb-12">WELCOME TO RENTGO</h2>
+    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      
+      {/* LEFT COLUMN: DESCRIPTION */}
+      <div className="lg:col-span-4 space-y-6 text-sm md:text-base font-normal tracking-wide leading-relaxed text-zinc-300">
+        <p>At <span className="text-white font-bold">RENTGO</span>, we make transportation simple, convenient, and reliable.
+        Whether you need a car for a family trip, a motorcycle for quick city travel, or a vehicle for your next adventure, RENTGO is here to help you get on the road with ease.</p>
+        <p>Our platform allows customers to rent cars and motorcycles anytime with a fast and hassle-free process.
+        If your preferred vehicle is currently unavailable, you can reserve it in advance and secure your booking for your desired date and time.</p>
+        <p>We aim to provide affordable, safe, and well-maintained vehicles for every type of traveler.</p>
+      </div>
+      
+      {/* CENTER COLUMN: SHOWCASE IMAGE */}
+      <div className="lg:col-span-4 flex justify-center items-center w-full min-h-[420px] lg:scale-125 xl:scale-135 transition-transform duration-300">
+        <img src="/images/Montero Sport.png" alt="About Vehicle Front" className="w-full h-auto max-h-[500px] lg:max-h-[600px] object-contain drop-shadow-[-30px_20px_40px_rgba(0,0,0,0.95)]" />
+      </div>
+      
+      {/* RIGHT COLUMN: VISION, MISSION & OFFERS */}
+      <div className="lg:col-span-4 space-y-6">
+        <div>
+          <h3 className="font-concert text-red-400 font-bold text-lg uppercase tracking-wide mb-1.5">OUR MISSION</h3>
+          <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
+            To provide safe, reliable, and affordable vehicle rental and reservation services that deliver freedom, convenience, and absolute peace of mind for every journey.
+          </p>
+        </div>
+
+        <div>
+          <h3 className="font-concert text-red-400 font-bold text-lg uppercase tracking-wide mb-1.5">OUR VISION</h3>
+          <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
+            To be the top-of-mind, most trusted transport rental platform known for exceptional fleet quality, seamless digital booking, and unmatched customer satisfaction.
+          </p>
+        </div>
+
+        <div>
+          <h3 className="font-concert text-red-400 font-bold text-lg uppercase tracking-wide mb-2">WHAT WE OFFER</h3>
+          <ul className="list-disc pl-5 space-y-1 text-xs md:text-sm text-zinc-400 tracking-wide">
+            <li>Wide selection of cars and motorcycles</li>
+            <li>Easy online booking and reservation system</li>
+            <li>Vehicle availability tracking</li>
+            <li>Advance reservation for unavailable vehicles</li>
+            <li>Affordable rental rates</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+)}
 
         {/* SERVICES PAGE VIEW */}
         {view === "services" && (
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Service item 1 */}
-          <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
-            <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
-              <img src="/images/image 14.png" alt="Car Rental" className="w-full h-full object-cover opacity-90" />
+          <div className="w-full max-w-[1100px] grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
+              <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
+                <img src="/images/image 14.png" alt="Car Rental" className="w-full h-full object-cover opacity-90" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">CAR RENTAL</h3>
+                <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
+                  Drive comfortably with our wide range of rental cars perfect for family trips, business travel, vacations, and daily transportation.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">CAR RENTAL</h3>
-              <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
-                Drive comfortably with our wide range of rental cars perfect for family trips, business travel, vacations, and daily transportation.
-              </p>
-            </div>
-          </div>
 
-          {/* Service item 2 */}
-          <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
-            <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
-              <img src="/images/image 15.png" alt="Motorcycle Rental" className="w-full h-full object-cover opacity-90" />
+            <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
+              <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
+                <img src="/images/image 15.png" alt="Motorcycle Rental" className="w-full h-full object-cover opacity-90" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">MOTORCYCLE RENTAL</h3>
+                <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
+                  Affordable and convenient motorcycle rentals for quick travel, city rides, and personal transportation.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">MOTORCYCLE RENTAL</h3>
-              <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
-                Affordable and convenient motorcycle rentals for quick travel, city rides, and personal transportation.
-              </p>
-            </div>
-          </div>
 
-          {/* Service item 3 */}
-          <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
-            <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
-              <img src="/images/image 16.png" alt="Vehicle Reservation" className="w-full h-full object-cover opacity-90" />
+            <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
+              <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
+                <img src="/images/image 16.png" alt="Vehicle Reservation" className="w-full h-full object-cover opacity-90" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">VEHICLE RESERVATION</h3>
+                <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
+                  Reserve your preferred vehicle in advance if it is currently unavailable. Secure your booking for your desired schedule without worrying.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">VEHICLE RESERVATION</h3>
-              <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
-                Reserve your preferred vehicle in advance if it is currently unavailable. Secure your booking for your desired schedule without worrying.
-              </p>
-            </div>
-          </div>
 
-          {/* Service item 4 */}
-          <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
-            <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
-              <img src="/images/image 17.png" alt="Adventure Trips" className="w-full h-full object-cover opacity-90" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">ADVENTURE TRIPS</h3>
-              <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
-                Perfect vehicles for outdoor adventures, long rides, and exploring new horizons safely.
-              </p>
+            <div className="bg-zinc-900/30 backdrop-blur-md border border-zinc-900 rounded-2xl p-5 flex gap-5 items-center hover:border-zinc-800/80 shadow-xl transition-all">
+              <div className="w-[140px] h-[140px] bg-zinc-950 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-900">
+                <img src="/images/image 17.png" alt="Adventure Trips" className="w-full h-full object-cover opacity-90" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">ADVENTURE TRIPS</h3>
+                <p className="text-xs md:text-sm text-zinc-400 tracking-wide leading-relaxed">
+                  Perfect vehicles for outdoor adventures, long rides, and exploring new horizons safely.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
         )}
 
         {/* CONTACT PAGE VIEW */}
         {view === "contact" && (
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-              {/* LEFT COLUMN: CONTACT INFORMATION */}
-              <div className="space-y-8">
-                <div className="space-y-5">
-                  <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">CONTACT INFORMATION</h3>
-                  <div className="text-sm space-y-4 text-zinc-400">
-                    <div>
-                      <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Address :</p>
-                      <p className="text-zinc-200">Cebu City, Philippines</p>
-                    </div>
-                    <div>
-                      <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Phone Number :</p>
-                      <p className="text-zinc-200">+63 967 676 7676</p>
-                    </div>
-                    <div>
-                      <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Email Address :</p>
-                      <p className="text-zinc-200">rentgoofficial@gmail.com</p>
-                    </div>
-                    <div>
-                      <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Business Hours :</p>
-                      <p className="text-zinc-200">Monday - Sunday | 8:00 AM - 8:00 PM</p>
-                    </div>
+          <div className="w-full max-w-[1100px] grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+            <div className="space-y-8">
+              <div className="space-y-5">
+                <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide">CONTACT INFORMATION</h3>
+                <div className="text-sm space-y-4 text-zinc-400">
+                  <div>
+                    <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Address :</p>
+                    <p className="text-zinc-200">Cebu City, Philippines</p>
                   </div>
-                </div>
-
-                <div className="space-y-3 pt-4 border-t border-zinc-900/60">
-                  <h3 className="font-concert text-zinc-100 font-bold text-base uppercase tracking-wide">FOLLOW US</h3>
-                  <p className="text-xs text-zinc-500 leading-relaxed">
-                    Stay updated with premium promotions, seasonal discounts, and instant fleet announcements.
-                  </p>
-                  <div className="flex gap-4 text-xs font-bold text-zinc-300 uppercase tracking-wider pt-1">
-                    <span className="hover:text-red-400 cursor-pointer transition-colors">Facebook</span>
-                    <span className="text-zinc-800">•</span>
-                    <span className="hover:text-red-400 cursor-pointer transition-colors">Instagram</span>
-                    <span className="text-zinc-800">•</span>
-                    <span className="hover:text-red-400 cursor-pointer transition-colors">TikTok</span>
+                  <div>
+                    <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Phone Number :</p>
+                    <p className="text-zinc-200">+63 967 676 7676</p>
+                  </div>
+                  <div>
+                    <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Email Address :</p>
+                    <p className="text-zinc-200">rentgoofficial@gmail.com</p>
+                  </div>
+                  <div>
+                    <p className="text-red-400 font-black text-xs tracking-wider uppercase mb-0.5">Business Hours :</p>
+                    <p className="text-zinc-200">Monday - Sunday | 8:00 AM - 8:00 PM</p>
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: SEND US A MESSAGE CARD */}
-              <div className="bg-zinc-900/20 backdrop-blur-md border border-zinc-900 rounded-2xl p-6 md:p-8 flex flex-col justify-between h-full min-h-[380px]">
-                <div>
-                  <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide mb-4">SEND US A MESSAGE</h3>
-                  <p className="text-zinc-400 text-xs md:text-sm leading-relaxed mb-6">
-                    You can immediately contact our live operations channel for any of the following parameters:
-                  </p>
-                  <ul className="space-y-3 text-xs md:text-sm text-zinc-400 mb-6">
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Car and motorcycle rental inquiries</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Vehicle reservation concerns</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Booking and scheduling assistance</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Custom fleet availability metrics</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Corporate rates and custom accounts</li>
-                  </ul>
+              <div className="space-y-3 pt-4 border-t border-zinc-900/60">
+                <h3 className="font-concert text-zinc-100 font-bold text-base uppercase tracking-wide">FOLLOW US</h3>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Stay updated with premium promotions, seasonal discounts, and instant fleet announcements.
+                </p>
+                <div className="flex gap-4 text-xs font-bold text-zinc-300 uppercase tracking-wider pt-1">
+                  <span className="hover:text-red-400 cursor-pointer transition-colors">Facebook</span>
+                  <span className="text-zinc-800">•</span>
+                  <span className="hover:text-red-400 cursor-pointer transition-colors">Instagram</span>
+                  <span className="text-zinc-800">•</span>
+                  <span className="hover:text-red-400 cursor-pointer transition-colors">TikTok</span>
                 </div>
-
-                
               </div>
             </div>
+
+            <div className="bg-zinc-900/20 backdrop-blur-md border border-zinc-900 rounded-2xl p-6 md:p-8 flex flex-col justify-between h-full min-h-[380px]">
+              <div>
+                <h3 className="font-concert text-zinc-100 font-bold text-lg uppercase tracking-wide mb-4">SEND US A MESSAGE</h3>
+                <p className="text-zinc-400 text-xs md:text-sm leading-relaxed mb-6">
+                  You can immediately contact our live operations channel for any of the following parameters:
+                </p>
+                <ul className="space-y-3 text-xs md:text-sm text-zinc-400 mb-6">
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Car and motorcycle rental inquiries</li>
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Vehicle reservation concerns</li>
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Booking and scheduling assistance</li>
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Custom fleet availability metrics</li>
+                  <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Corporate rates and custom accounts</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* AUTHENTICATION VIEW BLOCKS */}
@@ -582,119 +589,114 @@ export default function Home() {
             <div className="mt-6 flex flex-col items-center gap-2 text-xs text-zinc-500">
               {view === "login" && (
                 <>
-                  <button type="button" onClick={() => setView("signup")} className="hover:text-zinc-300 transition-colors bg-transparent border-none cursor-pointer">
-                    Don't have an account? <span className="text-red-400 font-semibold">Sign Up</span>
-                  </button>
-                  <button type="button" onClick={() => setView("forgot")} className="hover:text-zinc-300 transition-colors mt-1 bg-transparent border-none cursor-pointer">
-                    Forgot Password?
-                  </button>
+                  <button type="button" onClick={() => setView("signup")} className="hover:text-zinc-300 transition-colors bg-transparent border-none cursor-pointer"> Don't have an account? <span className="text-red-400 font-semibold">Sign Up</span> </button>
+                  <button type="button" onClick={() => setView("forgot")} className="hover:text-zinc-300 transition-colors mt-1 bg-transparent border-none cursor-pointer"> Forgot Password? </button>
                 </>
               )}
               {view === "signup" && (
-                <button type="button" onClick={() => setView("login")} className="hover:text-zinc-300 transition-colors bg-transparent border-none cursor-pointer">
-                  Already have an account? <span className="text-red-400 font-semibold">Log In</span>
-                </button>
+                <button type="button" onClick={() => setView("login")} className="hover:text-zinc-300 transition-colors bg-transparent border-none cursor-pointer"> Already have an account? <span className="text-red-400 font-semibold">Log In</span> </button>
               )}
               {(view === "forgot" || view === "verify_code") && (
-                <button type="button" onClick={() => setView("login")} className="hover:text-zinc-300 transition-colors text-red-400 font-semibold bg-transparent border-none cursor-pointer">
-                  Back to Log In
-                </button>
+                <button type="button" onClick={() => setView("login")} className="hover:text-zinc-300 transition-colors text-red-400 font-semibold bg-transparent border-none cursor-pointer"> Back to Log In </button>
               )}
             </div>
           </div>
         )}
-      </main>
 
-      {/* RENTAL / RESERVATION MODAL LAYER */}
-      {isModalOpen && selectedVehicle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-md bg-black/60 transition-all animate-fadeIn">
-          <div className="w-full max-w-[550px] bg-zinc-900/90 border border-zinc-850 rounded-2xl shadow-2xl relative overflow-hidden flex flex-col my-8">
-            <header className="p-6 border-b border-zinc-800/60 flex justify-between items-center bg-zinc-950/40 relative z-10">
-              <div className="flex flex-col">
-                <h3 className="font-concert text-lg uppercase tracking-wider text-white">
-                  {modalMode === "rent" ? "RENTAL APPLICATION" : "ADVANCE RESERVATION"}
-                </h3>
-                <p className="text-[11px] uppercase tracking-widest text-zinc-400 mt-0.5">
-                  Vehicle Unit: <span className="text-red-400 font-black">{selectedVehicle.name}</span>
-                </p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-full bg-zinc-950 border border-zinc-850 flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer">✕</button>
-            </header>
+        {/* RENTAL & RESERVATION MODAL COMPONENT */}
+{isModalOpen && selectedVehicle && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 overflow-y-auto antialiased animate-fadeIn">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-[500px] p-6 md:p-8 relative shadow-2xl my-8">
+      
+      {/* CLOSE MODAL BUTTON */}
+      <button 
+        onClick={() => setIsModalOpen(false)}
+        className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200 transition-colors bg-transparent border-none text-xl font-bold cursor-pointer"
+      >
+        ✕
+      </button>
 
-            <div className="p-6 overflow-y-auto max-h-[65vh] space-y-6 relative z-10">
-              {!isApproved ? (
-                <form onSubmit={handleRentalSubmit} className="space-y-4 text-xs">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-zinc-400 font-bold uppercase tracking-wider block">Full Name</label>
-                      <input type="text" name="fullName" required value={rentalForm.fullName} onChange={handleRentalChange} className="w-full bg-zinc-950/80 text-zinc-100 border border-zinc-850 rounded-xl px-4 py-3 outline-none" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-zinc-400 font-bold uppercase tracking-wider block">Phone Number</label>
-                      <input type="tel" name="phone" required value={rentalForm.phone} onChange={handleRentalChange} className="w-full bg-zinc-950/80 text-zinc-100 border border-zinc-850 rounded-xl px-4 py-3 outline-none" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-zinc-400 font-bold uppercase tracking-wider block">Email Address</label>
-                      <input type="email" name="email" required value={rentalForm.email} onChange={handleRentalChange} className="w-full bg-zinc-950/80 text-zinc-100 border border-zinc-850 rounded-xl px-4 py-3 outline-none" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <label className="text-zinc-400 font-bold uppercase tracking-wider block">Age</label>
-                        <input type="number" name="age" required value={rentalForm.age} onChange={handleRentalChange} className="w-full bg-zinc-950/80 text-zinc-100 border border-zinc-850 rounded-xl px-4 py-3 outline-none" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-zinc-400 font-bold uppercase tracking-wider block">Days</label>
-                        <input type="number" name="daysToUse" required value={rentalForm.daysToUse} onChange={handleRentalChange} className="w-full bg-zinc-950/80 text-zinc-100 border border-zinc-850 rounded-xl px-4 py-3 outline-none" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-zinc-400 font-bold uppercase tracking-wider block">Vehicle Selected</label>
-                      <input type="text" readOnly value={rentalForm.vehicleType} className="w-full bg-zinc-950/40 text-zinc-500 border border-zinc-900 rounded-xl px-4 py-3 cursor-not-allowed select-none font-bold" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-zinc-400 font-bold uppercase tracking-wider block">Pickup Date</label>
-                      <input type="date" name="pickupDate" required value={rentalForm.pickupDate} onChange={handleRentalChange} className="w-full bg-zinc-950/80 text-zinc-100 border border-zinc-850 rounded-xl px-4 py-3 outline-none" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-zinc-400 font-bold uppercase tracking-wider block">Current Address</label>
-                    <textarea name="address" required value={rentalForm.address} onChange={handleRentalChange} rows={2} className="w-full bg-zinc-950/80 text-zinc-100 border border-zinc-850 rounded-xl px-4 py-3 outline-none resize-none" />
-                  </div>
-
-                  <div className="pt-2 flex items-start gap-3">
-                    <input type="checkbox" id="agreeToTerms" name="agreeToTerms" checked={rentalForm.agreeToTerms} onChange={handleRentalChange} required className="mt-0.5 w-4 h-4 accent-red-600 transition-all cursor-pointer" />
-                    <label htmlFor="agreeToTerms" className="text-[11px] text-zinc-400 leading-relaxed cursor-pointer select-none">
-                      I understand that RENTGO requires valid government identification upon unit handover, and I verify that all parameters inputed above are systematically legitimate.
-                    </label>
-                  </div>
-
-                  <button type="submit" className="font-concert w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold tracking-widest uppercase transition-colors shadow-lg mt-4">
-                    {modalMode === "rent" ? "SUBMIT APPLICATION" : "CONFIRM RESERVATION"}
-                  </button>
-                </form>
-              ) : (
-                <div className="w-full py-6 flex flex-col items-center text-center animate-scaleUp">
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl mb-4">✓</div>
-                  <h4 className="font-concert text-xl text-zinc-100 uppercase tracking-wider mb-2">APPLICATION SUBMITTED!</h4>
-                  <p className="text-zinc-400 text-xs max-w-[380px] leading-relaxed mb-6">Thank you, <span className="text-white font-bold">{rentalForm.fullName}</span>. Your request for the <span className="text-zinc-200 font-semibold">{selectedVehicle.name}</span> has been dispatched.</p>
-                  <button onClick={() => setIsModalOpen(false)} className="font-concert px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold tracking-wider uppercase transition-all mt-4">CLOSE WINDOW</button>
-                </div>
-              )}
-            </div>
+      {!isApproved ? (
+        <>
+          {/* HEADER HEADER */}
+          <div className="text-center mb-6">
+            <h3 className="font-concert text-xl md:text-2xl font-black uppercase tracking-wider text-zinc-100">
+              {modalMode === "rent" ? "VEHICLE RENTAL FORM" : "VEHICLE RESERVATION FORM"}
+            </h3>
+            <p className="text-xs text-zinc-400 mt-1 uppercase tracking-widest font-bold">
+              Target Unit: <span className="text-red-500">{selectedVehicle.name}</span> ({selectedVehicle.color})
+            </p>
           </div>
+
+          {/* DYNAMIC FORM INTAKE MATRIX */}
+          <form onSubmit={handleRentalSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input type="text" name="fullName" placeholder="Full Name" value={rentalForm.fullName} onChange={handleRentalChange} required className="w-full bg-zinc-950/80 text-zinc-100 placeholder-zinc-600 px-4 py-3 rounded-xl outline-none border border-zinc-900 focus:border-red-500/40 text-sm transition-all" />
+              <input type="text" name="phone" placeholder="Phone Number" value={rentalForm.phone} onChange={handleRentalChange} required className="w-full bg-zinc-950/80 text-zinc-100 placeholder-zinc-600 px-4 py-3 rounded-xl outline-none border border-zinc-900 focus:border-red-500/40 text-sm transition-all" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input type="email" name="email" placeholder="Email Address" value={rentalForm.email} onChange={handleRentalChange} required className="w-full bg-zinc-950/80 text-zinc-100 placeholder-zinc-600 px-4 py-3 rounded-xl outline-none border border-zinc-900 focus:border-red-500/40 text-sm transition-all" />
+              <input type="number" name="age" placeholder="Age" min={18} value={rentalForm.age} onChange={handleRentalChange} required className="w-full bg-zinc-950/80 text-zinc-100 placeholder-zinc-600 px-4 py-3 rounded-xl outline-none border border-zinc-900 focus:border-red-500/40 text-sm transition-all" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input type="number" name="daysToUse" placeholder="Days to Use" min={1} value={rentalForm.daysToUse} onChange={handleRentalChange} required className="w-full bg-zinc-950/80 text-zinc-100 placeholder-zinc-600 px-4 py-3 rounded-xl outline-none border border-zinc-900 focus:border-red-500/40 text-sm transition-all" />
+              <input type="date" name="pickupDate" value={rentalForm.pickupDate} onChange={handleRentalChange} required className="w-full bg-zinc-950/80 text-zinc-400 px-4 py-3 rounded-xl outline-none border border-zinc-900 focus:border-red-500/40 text-sm transition-all uppercase font-semibold" />
+            </div>
+
+            <textarea name="address" placeholder="Complete Home Address" value={rentalForm.address} onChange={handleRentalChange} required rows={3} className="w-full bg-zinc-950/80 text-zinc-100 placeholder-zinc-600 px-4 py-3 rounded-xl outline-none border border-zinc-900 focus:border-red-500/40 text-sm resize-none transition-all" />
+
+            {/* AGREEMENT CHECKBOX RULES */}
+            <div className="flex items-start gap-3 pt-1">
+              <input type="checkbox" id="agreeToTerms" name="agreeToTerms" checked={rentalForm.agreeToTerms} onChange={handleRentalChange} required className="mt-1 accent-red-600 cursor-pointer" />
+              <label htmlFor="agreeToTerms" className="text-[11px] text-zinc-400 leading-normal select-none cursor-pointer">
+                I agree that the information provided is completely accurate, and I accept the terms of rental verification agreements under Cebu City transit jurisdiction laws.
+              </label>
+            </div>
+
+            {/* ACTION TRIGGERS */}
+            <div className="flex gap-4 pt-3">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="font-concert flex-1 py-3 bg-zinc-950 text-zinc-400 border border-zinc-800 font-bold rounded-xl text-xs uppercase tracking-widest hover:bg-zinc-900 transition-colors">
+                CANCEL
+              </button>
+              <button type="submit" className="font-concert flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-colors shadow-md shadow-red-600/10">
+                {modalMode === "rent" ? "SUBMIT RENTAL" : "SUBMIT RESERVE"}
+              </button>
+            </div>
+          </form>
+        </>
+      ) : (
+        /* STATUS CODE PIPELINE: TRANSACTION SUCCESS STATE */
+        <div className="text-center py-6 flex flex-col items-center justify-center space-y-4">
+          <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center text-2xl font-bold">
+            ✓
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-concert text-xl font-black text-zinc-100 uppercase tracking-wide">
+              {modalMode === "rent" ? "RENTAL REQUEST APPROVED" : "RESERVATION SECURED"}
+            </h3>
+            <p className="text-xs text-zinc-400 max-w-[340px] mx-auto leading-relaxed">
+              Your parameters have been logged successfully. Please wait for our representative to contact you via mobile verification within 24 hours.
+            </p>
+          </div>
+          <button 
+            type="button" 
+            onClick={() => { setIsModalOpen(false); setIsApproved(false); }} 
+            className="font-concert px-8 py-2.5 bg-zinc-950 text-zinc-200 border border-zinc-800 hover:bg-zinc-900 text-xs uppercase font-bold tracking-wider rounded-xl transition-all"
+          >
+            CLOSE WINDOW
+          </button>
         </div>
       )}
+    </div>
+  </div>
+)}
+      </main>
 
-      {/* FOOTER LAYER */}
-      <footer className="relative z-10 w-full text-center py-8 border-t border-zinc-900/40 text-[11px] text-zinc-500 font-medium tracking-wider uppercase mt-auto">
-        <p>© 2026 RENTGO. ALL RIGHTS RESERVED.</p>
+      {/* FOOTER */}
+      <footer className="relative z-10 text-center text-[9px] md:text-[10px] tracking-widest text-zinc-600 font-semibold uppercase px-6 py-6 border-t border-zinc-900/20 bg-zinc-950/10 backdrop-blur-sm">
+        © 2026 RENTGO. ALL RIGHTS RESERVED.
       </footer>
     </div>
   );
