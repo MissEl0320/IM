@@ -19,7 +19,42 @@ app.use(express.json());
 // ===============================
 // MYSQL DATABASE CONNECTION
 // ===============================
-const db = mysql.createConnection(process.env.DATABASE_URL);
+const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    ssl: {
+        rejectUnauthorized: false // This fixes the Aiven secure connection issue
+    }
+});
+
+db.connect((err) => {
+    if (err) {
+        console.error('Database connection failed:', err);
+        return;
+    }
+
+    console.log('Connected to MySQL Database.');
+
+    // Auto-seed default admin account
+    const checkAdminSql = "SELECT * FROM users WHERE email = 'admin@rentgo.com'";
+
+    db.query(checkAdminSql, (err, results) => {
+        if (!err && results && results.length === 0) {
+            bcrypt.hash('admin123', 10, (hashErr, adminHash) => {
+                if (hashErr) return;
+                
+                const seedSql =
+                    "INSERT INTO users (username, email, password) VALUES ('Admin', 'admin@rentgo.com', ?)";
+
+                db.query(seedSql, [adminHash]);
+                console.log("Master admin account provisioned.");
+            });
+        }
+    });
+});
 
 db.connect((err) => {
     if (err) {
