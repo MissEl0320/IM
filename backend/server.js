@@ -280,6 +280,7 @@ app.post('/api/reset-password', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
+    module.exports = app;
     console.log('===================================================');
     console.log(` Secure System Server executing on port ${PORT}`);
     console.log('===================================================');
