@@ -19,12 +19,7 @@ app.use(express.json());
 // ===============================
 // MYSQL DATABASE CONNECTION
 // ===============================
-const db = mysql.createConnection({
-    uri: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+const db = mysql.createConnection(process.env.DATABASE_URL);
 
 db.connect((err) => {
     if (err) {
