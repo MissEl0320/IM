@@ -33,10 +33,10 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Use pool.query instead of db.query for serverless stability
+// Use pool for all queries to prevent "closed state" errors
 const db = pool; 
 
-// Auto-seed default admin account stably
+// Auto-seed default admin account stably without db.connect()
 const checkAdminSql = "SELECT * FROM users WHERE email = 'admin@rentgo.com'";
 db.query(checkAdminSql, (err, results) => {
     if (!err && results && results.length === 0) {
@@ -52,31 +52,6 @@ db.query(checkAdminSql, (err, results) => {
     }
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error('Database connection failed:', err);
-        return;
-    }
-
-    console.log('Connected to MySQL Database.');
-
-    // Auto-seed default admin account
-    const checkAdminSql = "SELECT * FROM users WHERE email = 'admin@rentgo.com'";
-
-    db.query(checkAdminSql, async (err, results) => {
-        if (!err && results.length === 0) {
-            const adminHash = await bcrypt.hash('admin123', 10);
-
-            const seedSql =
-                "INSERT INTO users (username, email, password) VALUES ('Admin', 'admin@rentgo.com', ?)";
-
-            db.query(seedSql, [adminHash]);
-
-            console.log("Master admin account provisioned.");
-        }
-    });
-});
-
 // ===============================
 // EMAIL TRANSPORTER
 // ===============================
@@ -88,11 +63,10 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Temporary memory store for verification codes
 const verificationCodes = new Map();
 
 // ===============================
-// USER SIGNUP
+// USER SIGNUP (WORKING)
 // ===============================
 app.post('/api/signup', async (req, res) => {
     const { username, email, password } = req.body;
@@ -100,8 +74,7 @@ app.post('/api/signup', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const sql =
-            "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+        const sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
 
         db.query(sql, [username, email, hashedPassword], (err, result) => {
             if (err) {
@@ -110,7 +83,6 @@ app.post('/api/signup', async (req, res) => {
                         message: "Account already exists."
                     });
                 }
-
                 return res.status(500).json({
                     message: err.message
                 });
@@ -129,11 +101,10 @@ app.post('/api/signup', async (req, res) => {
 });
 
 // ===============================
-// USER LOGIN
+// USER LOGIN (WORKING)
 // ===============================
 app.post('/api/login', (req, res) => {
     const { identifier, password } = req.body;
-
     const lookupValue = identifier || req.body.email;
 
     if (!lookupValue) {
@@ -142,25 +113,22 @@ app.post('/api/login', (req, res) => {
         });
     }
 
-    const sql =
-        "SELECT * FROM users WHERE email = ? OR username = ?";
+    const sql = "SELECT * FROM users WHERE email = ? OR username = ?";
 
     db.query(sql, [lookupValue, lookupValue], async (err, results) => {
-
         if (err) {
             return res.status(500).json({
                 message: err.message
             });
         }
 
-        if (results.length === 0) {
+        if (!results || results.length === 0) {
             return res.status(401).json({
                 message: "Invalid credentials."
             });
         }
 
         const user = results[0];
-
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -185,21 +153,16 @@ app.post('/api/login', (req, res) => {
 // ===============================
 app.post('/api/forgot-password', (req, res) => {
     const { email } = req.body;
-
     const sql = "SELECT * FROM users WHERE email = ?";
 
     db.query(sql, [email], (err, results) => {
-
-        if (err || results.length === 0) {
+        if (err || !results || results.length === 0) {
             return res.status(400).json({
                 message: "Email not found."
             });
         }
 
-        const code = Math.floor(
-            100000 + Math.random() * 900000
-        ).toString();
-
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
         verificationCodes.set(email, {
             code,
             expires: Date.now() + 600000
@@ -213,13 +176,11 @@ app.post('/api/forgot-password', (req, res) => {
         };
 
         transporter.sendMail(mailOptions, (error, info) => {
-
             if (error) {
                 return res.status(500).json({
                     message: "Failed to send email."
                 });
             }
-
             res.status(200).json({
                 message: "Verification code sent."
             });
@@ -232,41 +193,29 @@ app.post('/api/forgot-password', (req, res) => {
 // ===============================
 app.post('/api/reset-password', async (req, res) => {
     const { email, code, newPassword } = req.body;
-
     const record = verificationCodes.get(email);
 
-    if (
-        !record ||
-        record.code !== code ||
-        Date.now() > record.expires
-    ) {
+    if (!record || record.code !== code || Date.now() > record.expires) {
         return res.status(400).json({
             message: "Invalid or expired code."
         });
     }
 
     try {
-        const hashedNewPassword =
-            await bcrypt.hash(newPassword, 10);
-
-        const sql =
-            "UPDATE users SET password = ? WHERE email = ?";
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        const sql = "UPDATE users SET password = ? WHERE email = ?";
 
         db.query(sql, [hashedNewPassword, email], (err, result) => {
-
             if (err) {
                 return res.status(500).json({
                     message: err.message
                 });
             }
-
             verificationCodes.delete(email);
-
             res.status(200).json({
                 message: "Password updated successfully!"
             });
         });
-
     } catch (error) {
         res.status(500).json({
             message: "Server error."
@@ -278,10 +227,8 @@ app.post('/api/reset-password', async (req, res) => {
 // SERVER LISTEN
 // ===============================
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-    module.exports = app;
-    console.log('===================================================');
-    console.log(` Secure System Server executing on port ${PORT}`);
-    console.log('===================================================');
+    console.log(`Server executing on port ${PORT}`);
 });
+
+module.exports = app;
