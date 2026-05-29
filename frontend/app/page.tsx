@@ -107,14 +107,11 @@ export default function Home() {
 
     if (view === "forgot") {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    identifier: formData.identifier,
-    password: formData.password
-  }),
-});
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: formData.email }),
+        });
         const data = await response.json();
         if (response.ok) {
           alert("Verification code sent to your email!");
@@ -128,14 +125,15 @@ export default function Home() {
     }
     else if (view === "verify_code") {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    identifier: formData.identifier,
-    password: formData.password
-  }),
-});
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            code: formData.resetCode,
+            newPassword: formData.newPassword
+          }),
+        });
         const data = await response.json();
         if (response.ok) {
           alert("Password updated successfully!");
@@ -153,14 +151,15 @@ export default function Home() {
         return;
       }
       try {
-       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    identifier: formData.identifier,
-    password: formData.password
-  }),
-});
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: formData.username,
+            email: formData.email,
+            password: formData.password
+          }),
+        });
         const data = await response.json();
         if (response.ok) {
           alert("Account created successfully!");
@@ -175,14 +174,14 @@ export default function Home() {
     } 
     else if (view === "login") {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    identifier: formData.identifier,
-    password: formData.password
-  }),
-});
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            identifier: formData.identifier,
+            password: formData.password
+          }),
+        });
         const data = await response.json();
 
         if (response.ok) {
