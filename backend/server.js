@@ -17,7 +17,7 @@ app.use(cors({
 app.use(express.json());
 
 // ===============================
-// MYSQL DATABASE CONNECTION (SERVERLESS POOL OPTIMIZED)
+// MYSQL DATABASE CONNECTION
 // ===============================
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -25,31 +25,34 @@ const pool = mysql.createPool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    ssl: {
-        rejectUnauthorized: false
-    },
+    ssl: { rejectUnauthorized: false },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 });
 
-// Use pool for all queries to prevent "closed state" errors
 const db = pool; 
 
-// Auto-seed default admin account stably without db.connect()
-const checkAdminSql = "SELECT * FROM users WHERE email = 'admin@rentgo.com'";
-db.query(checkAdminSql, (err, results) => {
-    if (!err && results && results.length === 0) {
-        bcrypt.hash('admin123', 10, (hashErr, adminHash) => {
-            if (hashErr) return;
-            
-            const seedSql =
-                "INSERT INTO users (username, email, password) VALUES ('Admin', 'admin@rentgo.com', ?)";
-
-            db.query(seedSql, [adminHash]);
-            console.log("Master admin account provisioned.");
-        });
+// Safely execute admin seeding only when a connection is actively established by the pool
+pool.getConnection((err, connection) => {
+    if (err) {
+        console.error("Database initialization failed:", err.message);
+        return;
     }
+    
+    const checkAdminSql = "SELECT * FROM users WHERE email = 'admin@rentgo.com'";
+    connection.query(checkAdminSql, (adminErr, results) => {
+        if (!adminErr && results && results.length === 0) {
+            bcrypt.hash('admin123', 10, (hashErr, adminHash) => {
+                if (!hashErr) {
+                    const seedSql = "INSERT INTO users (username, email, password) VALUES ('Admin', 'admin@rentgo.com', ?)";
+                    connection.query(seedSql, [adminHash]);
+                    console.log("Master admin account provisioned.");
+                }
+            });
+        }
+        connection.release(); // Always return the pipe back to Vercel's pool!
+    });
 });
 
 // ===============================
