@@ -107,7 +107,7 @@ export default function Home() {
 
     if (view === "forgot") {
       try {
-        const response = await fetch("/api/forgot-password", {
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/forgot-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: formData.email }),
@@ -125,7 +125,7 @@ export default function Home() {
     }
     else if (view === "verify_code") {
       try {
-        const response = await fetch("/api/reset-password", {
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/reset-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -151,7 +151,7 @@ export default function Home() {
         return;
       }
       try {
-        const response = await fetch("/api/signup", {
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -174,7 +174,7 @@ export default function Home() {
     } 
     else if (view === "login") {
       try {
-        const response = await fetch("/api/login", {
+        const response = await fetch("https://im-1-o5b7.onrender.com/api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
